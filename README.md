@@ -2,7 +2,7 @@
 
 DevLens is a premium, open-source dashboard designed to help developers visualize their Git activity and contribution trends with unprecedented clarity. Built with a focus on high-end aesthetics and real-time data syncing.
 
-![DevLens Logo](public/logo.svg)
+<img src="public/logo.svg" width="80" alt="DevLens Logo" />
 
 ## ✨ Key Features
 
