@@ -19,11 +19,11 @@ export default async function LoginPage() {
         <div className="container relative h-screen flex-col items-center justify-center grid lg:max-w-none lg:grid-cols-2 lg:px-0">
             <div className="relative hidden h-full flex-col bg-muted p-10 text-white dark:border-r lg:flex">
                 <div className="absolute inset-0 bg-zinc-900" />
-                <div className="relative z-20 flex items-center text-lg font-medium gap-3">
-                    <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                        <span className="text-primary-foreground font-bold">D</span>
-                    </div>
-                    devlens
+                <div className="relative z-20 flex items-center text-xl font-bold gap-3 drop-shadow-sm">
+                    <img src="/logo.svg?v=2" alt="DevLens" className="w-10 h-10 object-contain drop-shadow-md" />
+                    <span className="text-3xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-amber-100 via-amber-300 to-amber-600 drop-shadow-sm">
+                        DevLens
+                    </span>
                 </div>
                 <div className="relative z-20 mt-auto">
                     <blockquote className="space-y-2">

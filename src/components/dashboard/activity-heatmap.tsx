@@ -68,12 +68,13 @@ export function ActivityHeatmap({ data, username }: HeatmapProps) {
     }
 
     // Calculate colors based on contribution count
+    // Calculate colors matching authentic GitHub dark mode with added glow for high activity
     const getColor = (count: number) => {
-        if (count === 0) return isDark ? 'bg-zinc-800/80' : 'bg-gray-100'
-        if (count <= 3) return isDark ? 'bg-emerald-900/60' : 'bg-emerald-200'
-        if (count <= 6) return isDark ? 'bg-emerald-600/80' : 'bg-emerald-400'
-        if (count <= 10) return isDark ? 'bg-emerald-500' : 'bg-emerald-600'
-        return isDark ? 'bg-emerald-400' : 'bg-emerald-800'
+        if (count === 0) return isDark ? 'bg-[#161b22] border-[0.5px] border-white/5' : 'bg-gray-100'
+        if (count <= 3) return isDark ? 'bg-[#0e4429]' : 'bg-emerald-200'
+        if (count <= 6) return isDark ? 'bg-[#006d32]' : 'bg-emerald-400'
+        if (count <= 10) return isDark ? 'bg-[#26a641]' : 'bg-emerald-600'
+        return isDark ? 'bg-[#39d353] shadow-[0_0_10px_rgba(57,211,83,0.5)]' : 'bg-emerald-800'
     }
 
     // Group into weeks
@@ -107,7 +108,7 @@ export function ActivityHeatmap({ data, username }: HeatmapProps) {
     }
 
     return (
-        <Card className="col-span-4 overflow-hidden">
+        <Card className="col-span-4 overflow-hidden dark:bg-black/60 dark:backdrop-blur-xl dark:border-white/10 dark:shadow-2xl transition-all duration-300">
             <CardHeader>
                 <CardTitle>Activity Heatmap</CardTitle>
                 <CardDescription>

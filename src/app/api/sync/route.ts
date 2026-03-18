@@ -1,4 +1,4 @@
-import { NextResponse } from "next"
+import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
@@ -23,8 +23,18 @@ export async function POST() {
             return new NextResponse("No GitHub account linked", { status: 400 })
         }
 
-        // @ts-ignore
-        const githubService = new GitHubService(account.access_token, session.user.githubUsername)
+        // Fetch the user's actual GitHub username dynamically
+        const userRes = await fetch("https://api.github.com/user", {
+            headers: { Authorization: `Bearer ${account.access_token}` }
+        })
+        const userData = await userRes.json()
+        const githubUsername = userData.login
+
+        if (!githubUsername) {
+            return new NextResponse("Could not fetch GitHub username", { status: 400 })
+        }
+
+        const githubService = new GitHubService(account.access_token, githubUsername)
 
         // 1. Sync Repositories
         const repos = await githubService.fetchRepositories()
@@ -116,10 +126,14 @@ export async function POST() {
             }
         }
 
-        // 3. Update sync timestamp on user
+        // 3. Update sync timestamp and GitHub info on user
         await prisma.user.update({
             where: { id: session.user.id },
-            data: { lastSyncAt: new Date() }
+            data: { 
+                lastSyncAt: new Date(),
+                githubUsername: githubUsername,
+                githubId: userData.id
+            }
         })
 
         return NextResponse.json({ success: true, message: "Sync completed" })

@@ -59,11 +59,11 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
             {/* Header */}
             <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
                 <div className="container flex h-14 items-center">
-                    <div className="flex items-center gap-2 font-bold">
-                        <div className="w-6 h-6 bg-primary rounded-md flex items-center justify-center">
-                            <span className="text-primary-foreground text-xs">D</span>
-                        </div>
-                        devlens
+                    <div className="flex items-center gap-2 font-bold drop-shadow-sm">
+                        <img src="/logo.svg?v=2" alt="DevLens" className="w-8 h-8 object-contain drop-shadow-md" />
+                        <span className="text-xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-amber-500 drop-shadow-sm">
+                            DevLens
+                        </span>
                     </div>
                     <div className="flex flex-1 items-center justify-end space-x-4">
                         <a

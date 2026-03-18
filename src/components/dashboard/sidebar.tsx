@@ -32,12 +32,10 @@ export function Sidebar() {
     return (
         <div className="space-y-4 py-4 flex flex-col h-full bg-card border-r">
             <div className="px-3 py-2 flex-1">
-                <Link href="/dashboard" className="flex items-center pl-3 mb-14">
-                    <div className="relative w-8 h-8 mr-4 bg-primary rounded-lg flex items-center justify-center">
-                        <span className="text-primary-foreground font-bold text-xl">D</span>
-                    </div>
-                    <h1 className="text-2xl font-bold">
-                        devlens
+                <Link href="/dashboard" className="flex items-center pl-3 mb-14 drop-shadow-sm transition-transform hover:scale-105">
+                    <img src="/logo.svg?v=2" alt="DevLens" className="w-8 h-8 object-contain mr-3 drop-shadow-md" />
+                    <h1 className="text-2xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-amber-100 via-amber-300 to-amber-600 drop-shadow-sm">
+                        DevLens
                     </h1>
                 </Link>
                 <div className="space-y-1">
