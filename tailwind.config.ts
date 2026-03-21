@@ -58,6 +58,11 @@ const config = {
                 md: "calc(var(--radius) - 2px)",
                 sm: "calc(var(--radius) - 4px)",
             },
+            boxShadow: {
+                'neon': '0 0 15px rgba(20, 184, 166, 0.5)',
+                'neon-purple': '0 0 15px rgba(168, 85, 247, 0.5)',
+                'full': '0 0 40px rgba(0, 0, 0, 0.5)',
+            },
             keyframes: {
                 "accordion-down": {
                     from: { height: "0" },

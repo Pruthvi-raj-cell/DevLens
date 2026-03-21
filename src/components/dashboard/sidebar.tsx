@@ -8,7 +8,7 @@ import { LayoutDashboard, BookMarked, Settings, LogOut } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { ThemeToggle } from "./theme-toggle"
+import { SearchInput } from "./search-input"
 
 const routes = [
     {
@@ -32,12 +32,17 @@ export function Sidebar() {
     return (
         <div className="space-y-4 py-4 flex flex-col h-full bg-card border-r">
             <div className="px-3 py-2 flex-1">
-                <Link href="/dashboard" className="flex items-center pl-3 mb-14 drop-shadow-sm transition-transform hover:scale-105">
+                <Link href="/dashboard" className="flex items-center pl-3 mb-8 drop-shadow-sm transition-transform hover:scale-105">
                     <img src="/logo.svg?v=2" alt="DevLens" className="w-8 h-8 object-contain mr-3 drop-shadow-md" />
                     <h1 className="text-2xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-amber-100 via-amber-300 to-amber-600 drop-shadow-sm">
                         DevLens
                     </h1>
                 </Link>
+                
+                <div className="mb-6 px-1">
+                    <SearchInput />
+                </div>
+
                 <div className="space-y-1">
                     {routes.map((route) => (
                         <Link
@@ -70,8 +75,7 @@ export function Sidebar() {
                                 <span className="text-xs text-muted-foreground truncate">{session.user.email}</span>
                             </div>
                         </div>
-                        <div className="flex items-center justify-between">
-                            <ThemeToggle />
+                        <div className="flex items-center justify-end">
                             <Button variant="ghost" size="icon" onClick={() => signOut()}>
                                 <LogOut className="h-5 w-5 text-muted-foreground hover:text-destructive transition" />
                             </Button>

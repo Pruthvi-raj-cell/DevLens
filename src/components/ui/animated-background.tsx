@@ -21,7 +21,7 @@ export function AnimatedBackground() {
     return (
         <div className="fixed inset-0 z-[-1] overflow-hidden bg-background">
             {/* Base ambient gradient */}
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-indigo-900/20 via-background to-background dark:from-indigo-950/30 dark:via-background dark:to-background" />
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-teal-900/20 via-background to-background dark:from-teal-950/30 dark:via-background dark:to-background" />
 
             {/* Reactive glowing orb following mouse */}
             <motion.div
@@ -44,7 +44,7 @@ export function AnimatedBackground() {
                     repeat: Infinity,
                     ease: "easeInOut",
                 }}
-                className="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-blue-500/10 blur-[100px]"
+                className="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-teal-500/15 blur-[120px]"
             />
             
             <motion.div
@@ -60,7 +60,7 @@ export function AnimatedBackground() {
                     ease: "easeInOut",
                     delay: 2,
                 }}
-                className="absolute top-[40%] -right-[10%] w-[40%] h-[60%] rounded-full bg-indigo-500/10 blur-[120px]"
+                className="absolute top-[40%] -right-[10%] w-[40%] h-[60%] rounded-full bg-purple-600/15 blur-[120px]"
             />
         </div>
     );
