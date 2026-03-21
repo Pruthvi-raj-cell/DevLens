@@ -1,5 +1,8 @@
+"use client"
+
 import Link from "next/link"
 import { Star, GitFork, BookMarked, ExternalLink } from "lucide-react"
+import { motion } from "framer-motion"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -33,8 +36,15 @@ export function RecentRepos({ repos }: RecentReposProps) {
             </CardHeader>
             <CardContent>
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    {repos.map((repo) => (
-                        <div key={repo.id} className="rounded-xl border bg-card text-card-foreground shadow-sm flex flex-col p-4 hover:border-primary/50 transition duration-200">
+                    {repos.map((repo, i) => (
+                        <motion.div 
+                            key={repo.id} 
+                            initial={{ opacity: 0, y: 15 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: i * 0.1, duration: 0.4 }}
+                            whileHover={{ scale: 1.02, y: -2 }}
+                            className="rounded-xl border bg-card text-card-foreground shadow-sm flex flex-col p-4 hover:border-primary/50 hover:shadow-md dark:hover:shadow-[0_0_15px_rgba(255,255,255,0.07)] transition-colors duration-200"
+                        >
                             <div className="flex items-start justify-between">
                                 <div className="flex items-center gap-2">
                                     <BookMarked className="h-4 w-4 text-muted-foreground" />
@@ -67,7 +77,7 @@ export function RecentRepos({ repos }: RecentReposProps) {
                                     {new Date(repo.updatedAt).toLocaleDateString()}
                                 </div>
                             </div>
-                        </div>
+                        </motion.div>
                     ))}
                     {repos.length === 0 && (
                         <div className="col-span-full py-8 text-center text-muted-foreground border border-dashed rounded-lg">

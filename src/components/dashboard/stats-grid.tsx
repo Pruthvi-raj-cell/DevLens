@@ -2,6 +2,7 @@
 
 import { Activity, GitCommit, Search, Star, BookMarked, GitFork, Flame, Trophy } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { motion, Variants } from "framer-motion"
 
 interface StatsGridProps {
     stats: {
@@ -68,21 +69,36 @@ export function StatsGrid({ stats }: StatsGridProps) {
         },
     ]
 
+    const containerStyle: Variants = {
+        hidden: { opacity: 0 },
+        show: {
+            opacity: 1,
+            transition: { staggerChildren: 0.05 }
+        }
+    }
+    
+    const itemStyle: Variants = {
+        hidden: { opacity: 0, y: 15 },
+        show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
+    }
+
     return (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <motion.div variants={containerStyle} initial="hidden" animate="show" className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             {cards.map((card) => (
-                <Card key={card.title}>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">
-                            {card.title}
-                        </CardTitle>
-                        <card.icon className={`h-4 w-4 ${card.color}`} />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{card.value}</div>
-                    </CardContent>
-                </Card>
+                <motion.div key={card.title} variants={itemStyle} whileHover={{ scale: 1.02, y: -2 }} transition={{ duration: 0.2 }}>
+                    <Card className="h-full transition-shadow hover:shadow-md dark:hover:shadow-[0_0_15px_rgba(255,255,255,0.07)] border hover:border-primary/30">
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">
+                                {card.title}
+                            </CardTitle>
+                            <card.icon className={`h-4 w-4 ${card.color}`} />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{card.value}</div>
+                        </CardContent>
+                    </Card>
+                </motion.div>
             ))}
-        </div>
+        </motion.div>
     )
 }

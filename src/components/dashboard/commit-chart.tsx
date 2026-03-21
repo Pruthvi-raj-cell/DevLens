@@ -10,19 +10,26 @@ import {
 } from "recharts"
 import { useTheme } from "next-themes"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { motion } from "framer-motion"
 
 export function CommitChart({ data }: { data: any[] }) {
     const { theme } = useTheme()
     const isDark = theme === "dark" || theme === "system"
 
     return (
-        <Card className="col-span-4 lg:col-span-3">
-            <CardHeader>
-                <CardTitle>Commit Activity</CardTitle>
-                <CardDescription>
-                    Your daily commit count over the last 30 days.
-                </CardDescription>
-            </CardHeader>
+        <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.4 }}
+            className="col-span-4 lg:col-span-3"
+        >
+            <Card className="h-full transition-shadow hover:shadow-md dark:hover:shadow-[0_0_15px_rgba(255,255,255,0.07)] border hover:border-primary/30">
+                <CardHeader>
+                    <CardTitle>Commit Activity</CardTitle>
+                    <CardDescription>
+                        Your daily commit count over the last 30 days.
+                    </CardDescription>
+                </CardHeader>
             <CardContent className="pl-2">
                 <ResponsiveContainer width="100%" height={350}>
                     <AreaChart data={data}>
@@ -87,5 +94,6 @@ export function CommitChart({ data }: { data: any[] }) {
                 </ResponsiveContainer>
             </CardContent>
         </Card>
+        </motion.div>
     )
 }

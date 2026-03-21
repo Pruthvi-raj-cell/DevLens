@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import { ThemeProvider } from '@/components/providers/theme-provider'
 import { SessionProvider } from '@/components/providers/session-provider'
+import { AnimatedBackground } from '@/components/ui/animated-background'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -26,6 +27,7 @@ export default function RootLayout({
                         forcedTheme="dark"
                         disableTransitionOnChange
                     >
+                        <AnimatedBackground />
                         {children}
                     </ThemeProvider>
                 </SessionProvider>

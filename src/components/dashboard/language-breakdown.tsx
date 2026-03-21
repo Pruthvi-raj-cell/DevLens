@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip as RechartsTooltip } from "recharts"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { motion } from "framer-motion"
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#a4de6c']
 
@@ -32,13 +33,19 @@ export function LanguageBreakdown({ data }: LanguageProps) {
     }))
 
     return (
-        <Card className="col-span-4 lg:col-span-1">
-            <CardHeader>
-                <CardTitle>Languages</CardTitle>
-                <CardDescription>
-                    Distribution of languages across your repositories.
-                </CardDescription>
-            </CardHeader>
+        <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.4, delay: 0.1 }}
+            className="col-span-4 lg:col-span-1"
+        >
+            <Card className="h-full transition-shadow hover:shadow-md dark:hover:shadow-[0_0_15px_rgba(255,255,255,0.07)] border hover:border-primary/30">
+                <CardHeader>
+                    <CardTitle>Languages</CardTitle>
+                    <CardDescription>
+                        Distribution of languages across your repositories.
+                    </CardDescription>
+                </CardHeader>
             <CardContent className="flex flex-col items-center">
                 <div className="h-[200px] w-full">
                     <ResponsiveContainer width="100%" height="100%">
@@ -76,5 +83,6 @@ export function LanguageBreakdown({ data }: LanguageProps) {
                 </div>
             </CardContent>
         </Card>
+        </motion.div>
     )
 }
