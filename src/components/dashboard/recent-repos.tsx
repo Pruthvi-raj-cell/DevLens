@@ -27,7 +27,7 @@ export function RecentRepos({ repos }: RecentReposProps) {
                 <div>
                     <CardTitle>Recently Updated Repositories</CardTitle>
                     <CardDescription>
-                        The projects you've been working on lately.
+                        The projects you&apos;ve been working on lately.
                     </CardDescription>
                 </div>
                 <Link href="/dashboard/repositories" className="text-sm text-primary hover:underline">
@@ -81,7 +81,7 @@ export function RecentRepos({ repos }: RecentReposProps) {
                     ))}
                     {repos.length === 0 && (
                         <div className="col-span-full py-8 text-center text-muted-foreground border border-dashed rounded-lg">
-                            No repositories found. Hit "Sync GitHub Data" to fetch them.
+                            No repositories found. Hit &quot;Sync GitHub Data&quot; to fetch them.
                         </div>
                     )}
                 </div>

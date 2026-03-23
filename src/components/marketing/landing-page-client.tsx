@@ -57,6 +57,7 @@ export function LandingPageClient() {
                 {/* Navbar */}
                 <header className="px-6 lg:px-14 h-24 flex items-center justify-between pointer-events-auto">
                     <div className="flex items-center gap-3">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src="/logo.svg?v=2" alt="DevLens" className="w-8 h-8 object-contain" />
                         <span className="text-xl font-bold tracking-tight text-white">DevLens</span>
                     </div>
@@ -145,6 +146,7 @@ export function LandingPageClient() {
                 
                 <footer className="py-12 w-full flex flex-col items-center justify-center border-t border-zinc-900 bg-[#020202] mt-auto pointer-events-auto">
                     <div className="flex items-center gap-2 mb-4 opacity-50 hover:opacity-100 transition-opacity cursor-pointer">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src="/logo.svg?v=2" alt="DevLens" className="w-5 h-5 grayscale" />
                         <span className="font-bold tracking-tight text-white">DevLens</span>
                     </div>

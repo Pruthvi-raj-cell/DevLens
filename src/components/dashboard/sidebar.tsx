@@ -33,6 +33,7 @@ export function Sidebar() {
         <div className="space-y-4 py-4 flex flex-col h-full bg-card border-r">
             <div className="px-3 py-2 flex-1">
                 <Link href="/dashboard" className="flex items-center pl-3 mb-8 drop-shadow-sm transition-transform hover:scale-105">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src="/logo.svg?v=2" alt="DevLens" className="w-8 h-8 object-contain mr-3 drop-shadow-md" />
                     <h1 className="text-2xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-amber-100 via-amber-300 to-amber-600 drop-shadow-sm">
                         DevLens

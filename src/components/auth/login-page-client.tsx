@@ -69,6 +69,7 @@ export function LoginPageClient() {
                     transition={{ duration: 0.6, ease: "easeOut" }}
                     className="relative z-20 flex items-center text-xl font-bold gap-3 drop-shadow-sm"
                 >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src="/logo.svg?v=2" alt="DevLens" className="w-10 h-10 object-contain drop-shadow-md" />
                     <span className="text-3xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-teal-400 via-teal-300 to-teal-600 drop-shadow-sm">
                         DevLens

@@ -13,7 +13,7 @@ export default function NotFound() {
                     Profile not found
                 </h1>
                 <p className="mx-auto max-w-[600px] text-muted-foreground md:text-xl">
-                    This user either doesn't exist or has set their Devlens profile to private.
+                    This user either doesn&apos;t exist or has set their Devlens profile to private.
                 </p>
             </div>
             <div className="flex flex-col gap-2 min-[400px]:flex-row mt-6">
