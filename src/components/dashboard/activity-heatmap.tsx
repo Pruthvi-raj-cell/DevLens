@@ -138,7 +138,7 @@ export function ActivityHeatmap({ data, username }: HeatmapProps) {
                                                     className={`w-[12px] h-[12px] rounded-sm transition-colors cursor-pointer hover:ring-1 hover:ring-primary ${getColor(day.count)}`}
                                                 />
                                             </TooltipTrigger>
-                                            <TooltipContent>
+                                            <TooltipContent side="top">
                                                 <p>{day.count} contributions on {new Date(day.date).toDateString()}</p>
                                             </TooltipContent>
                                         </Tooltip>
