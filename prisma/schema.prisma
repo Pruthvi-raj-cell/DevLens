@@ -46,7 +46,7 @@ model User {
   // Devlens Specific Fields
   githubId       Int?     @unique
   githubUsername String?  @unique
-  publicProfile  Boolean  @default(false)
+  publicProfile  Boolean  @default(true)
   
   // Scraped Data
   repositories  Repository[]

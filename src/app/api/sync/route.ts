@@ -39,8 +39,8 @@ export async function POST() {
         // 1. Sync Repositories
         const repos = await githubService.fetchRepositories()
 
-        for (const repo of repos) {
-            await prisma.repository.upsert({
+        await Promise.allSettled(repos.map(async (repo: any) => {
+            const dbRepo = await prisma.repository.upsert({
                 where: { githubId: repo.id },
                 update: {
                     name: repo.name,
@@ -65,55 +65,55 @@ export async function POST() {
                 }
             })
 
-            // Sync Languages for this repo
+            // Sync Languages for this repo concurrently
             if (repo.language) {
                 try {
                     const languages = await githubService.fetchLanguages(repo.full_name)
-                    for (const [name, bytes] of Object.entries(languages)) {
-                        const existingLanguage = await prisma.language.findUnique({
-                            where: {
-                                userId_name: {
-                                    userId: session.user.id,
-                                    name: name
+                    await Promise.allSettled(
+                        Object.entries(languages).map(async ([name, bytes]) => {
+                            const existingLanguage = await prisma.language.findUnique({
+                                where: {
+                                    userId_name: {
+                                        userId: session.user.id,
+                                        name: name
+                                    }
                                 }
+                            })
+
+                            if (existingLanguage) {
+                                return prisma.language.update({
+                                    where: { id: existingLanguage.id },
+                                    data: { bytes: existingLanguage.bytes + (bytes as number) }
+                                })
+                            } else {
+                                return prisma.language.create({
+                                    data: {
+                                        name,
+                                        bytes: bytes as number,
+                                        userId: session.user.id,
+                                    }
+                                })
                             }
                         })
-
-                        if (existingLanguage) {
-                            await prisma.language.update({
-                                where: { id: existingLanguage.id },
-                                data: { bytes: existingLanguage.bytes + (bytes as number) }
-                            })
-                        } else {
-                            await prisma.language.create({
-                                data: {
-                                    name,
-                                    bytes: bytes as number,
-                                    userId: session.user.id,
-                                    // Add a default color mapping logic here if needed
-                                }
-                            })
-                        }
-                    }
+                    )
                 } catch (e) {
                     console.error(`Failed to fetch languages for ${repo.full_name}`)
                 }
             }
-        }
+        }))
 
         // 2. Sync Commits
         const commits = await githubService.fetchUserCommits()
 
-        for (const commit of commits) {
-            // Find the repository in our DB first
+        await Promise.allSettled(commits.map(async (commit: any) => {
             const dbRepo = await prisma.repository.findUnique({
                 where: { githubId: commit.repositoryId }
             })
 
             if (dbRepo) {
-                await prisma.commit.upsert({
+                return prisma.commit.upsert({
                     where: { sha: commit.sha },
-                    update: {}, // Don't update existing commits, they don't change
+                    update: {},
                     create: {
                         sha: commit.sha,
                         message: commit.commit.message,
@@ -124,7 +124,7 @@ export async function POST() {
                     }
                 })
             }
-        }
+        }))
 
         // 3. Update sync timestamp and GitHub info on user
         await prisma.user.update({
