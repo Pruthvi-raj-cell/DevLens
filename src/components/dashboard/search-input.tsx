@@ -133,7 +133,7 @@ export function SearchInput() {
                         </div>
                     ) : !isSearching ? (
                         <div className="px-4 py-6 text-center text-sm text-muted-foreground">
-                            No public developers found for "{query}"
+                            No public developers found for &quot;{query}&quot;
                         </div>
                     ) : null}
                 </div>
