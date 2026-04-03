@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextResponse } from "next/server"
-import { getServerSession } from "next-auth"
+import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { GitHubService } from "@/services/github"
@@ -41,7 +41,7 @@ export async function POST() {
         const repos = await githubService.fetchRepositories()
 
         await Promise.allSettled(repos.map(async (repo: any) => {
-            const dbRepo = await prisma.repository.upsert({
+            await prisma.repository.upsert({
                 where: { githubId: repo.id },
                 update: {
                     name: repo.name,
