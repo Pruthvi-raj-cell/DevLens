@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma"
 import { notFound } from "next/navigation"
 import { Metadata } from "next"
+import Link from "next/link"
 
 import { StatsGrid } from "@/components/dashboard/stats-grid"
 import { CommitChart } from "@/components/dashboard/commit-chart"
@@ -67,12 +68,12 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
                         </span>
                     </div>
                     <div className="flex flex-1 items-center justify-end space-x-4">
-                        <a
+                        <Link
                             href="/"
                             className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
                         >
                             Get your own profile
-                        </a>
+                        </Link>
                     </div>
                 </div>
             </header>
