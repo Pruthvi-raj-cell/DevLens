@@ -10,6 +10,11 @@ const inter = Inter({ subsets: ['latin'] })
 export const metadata: Metadata = {
     title: 'Devlens',
     description: 'Developer intelligence and GitHub activity visualization',
+    icons: {
+        icon: '/logo.svg',
+        shortcut: '/logo.svg',
+        apple: '/logo.svg',
+    }
 }
 
 export default function RootLayout({

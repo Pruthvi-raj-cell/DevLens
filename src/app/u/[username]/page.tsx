@@ -68,7 +68,7 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
                     </div>
                     <div className="flex flex-1 items-center justify-end space-x-4">
                         <a
-                            href="https://devlens-app.vercel.app"
+                            href="/"
                             className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
                         >
                             Get your own profile
