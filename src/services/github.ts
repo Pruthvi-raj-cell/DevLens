@@ -17,6 +17,7 @@ export class GitHubService {
             headers: {
                 Authorization: `Bearer ${this.token}`,
                 Accept: "application/vnd.github.v3+json",
+                "User-Agent": "DevLens-App",
                 ...options.headers,
             },
         })
