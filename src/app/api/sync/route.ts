@@ -4,6 +4,9 @@ import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { GitHubService } from "@/services/github"
 
+export const maxDuration = 60 // Allow Vercel Function to run for 60s to completely sync GitHub
+
+
 export async function POST() {
     try {
         const session = await getServerSession(authOptions)
@@ -124,15 +127,27 @@ export async function POST() {
         }
 
         // 2. Sync Commits
-        const commits = await githubService.fetchUserCommits()
+        const commits = await githubService.fetchUserCommits(repos)
+
+        // Cache repos to avoid massive DB lookup loops which exhausted limits
+        const repoCache = new Map<number, string>()
 
         for (const commit of commits) {
             try {
-                const dbRepo = await prisma.repository.findUnique({
-                    where: { githubId: commit.repositoryId }
-                })
+                let dbRepoId = repoCache.get(commit.repositoryId)
+                
+                if (!dbRepoId) {
+                    const dbRepo = await prisma.repository.findUnique({
+                        where: { githubId: commit.repositoryId },
+                        select: { id: true }
+                    })
+                    if (dbRepo) {
+                        dbRepoId = dbRepo.id
+                        repoCache.set(commit.repositoryId, dbRepoId)
+                    }
+                }
 
-                if (dbRepo) {
+                if (dbRepoId) {
                     await prisma.commit.upsert({
                         where: { sha: commit.sha },
                         update: {},
@@ -142,7 +157,7 @@ export async function POST() {
                             date: new Date(commit.commit.author.date),
                             url: commit.html_url,
                             userId: session.user.id,
-                            repositoryId: dbRepo.id
+                            repositoryId: dbRepoId as string
                         }
                     })
                 }

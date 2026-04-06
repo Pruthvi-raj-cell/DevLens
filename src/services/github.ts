@@ -37,7 +37,7 @@ export class GitHubService {
         return this.fetchGit(`/repos/${repoFullName}/languages`)
     }
 
-    async fetchUserCommits() {
+    async fetchUserCommits(reposToUse?: any[]) {
         // Get commits by author in the last year
         const since = new Date()
         since.setFullYear(since.getFullYear() - 1)
@@ -48,7 +48,7 @@ export class GitHubService {
         const query = `author:${this.username} author-date:>${since.toISOString().split('T')[0]}`
 
         // To avoid hitting search limits during development, we'll fetch recent repos and their commits
-        const repos = await this.fetchRepositories()
+        const repos = reposToUse || await this.fetchRepositories()
         const allCommits = []
 
         // Only fetch commits from top 10 most recently updated repos to save API calls
