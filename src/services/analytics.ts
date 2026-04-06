@@ -1,47 +1,48 @@
 import { prisma } from "@/lib/prisma"
 
 export async function calculateUserStats(userId: string) {
-    // 1. Total Commits
-    const totalCommits = await prisma.commit.count({
-        where: { userId }
-    })
-
-    // 2. Repositories Contributed To
-    const reposCount = await prisma.repository.count({
-        where: { userId }
-    })
-
-    // 3. Most Active Repository
-    const repos = await prisma.repository.findMany({
-        where: { userId },
-        select: { stars: true, forks: true }
-    })
-
-    const totalStars = repos.reduce((acc: number, repo: { stars: number | null }) => acc + (repo.stars || 0), 0)
-    const totalForks = repos.reduce((acc: number, repo: { forks: number | null }) => acc + (repo.forks || 0), 0)
-
-    // 4. Most Active Repository
-    const reposWithCommits = await prisma.repository.findMany({
-        where: { userId },
-        include: {
-            _count: {
-                select: { commits: true }
-            }
-        },
-        orderBy: {
-            commits: { _count: 'desc' }
-        },
-        take: 1
-    })
-
-    const mostActiveRepo = reposWithCommits[0]?.name || "None"
-
-    // 4. Calculate Current Streak
-    const userCommits = await prisma.commit.findMany({
-        where: { userId },
-        select: { date: true },
-        orderBy: { date: 'desc' }
-    })
+    // Parallelize all analytics queries
+    const [
+        totalCommits,
+        reposCount,
+        repos,
+        reposWithCommits,
+        userCommits,
+        languages
+    ] = await Promise.all([
+        // 1. Total Commits
+        prisma.commit.count({ where: { userId } }),
+        
+        // 2. Repositories Contributed To
+        prisma.repository.count({ where: { userId } }),
+        
+        // 3. Repository stars/forks
+        prisma.repository.findMany({
+            where: { userId },
+            select: { stars: true, forks: true }
+        }),
+        
+        // 4. Most Active Repository
+        prisma.repository.findMany({
+            where: { userId },
+            include: { _count: { select: { commits: true } } },
+            orderBy: { commits: { _count: 'desc' } },
+            take: 1
+        }),
+        
+        // 5. User Commits (for streaks & charts)
+        prisma.commit.findMany({
+            where: { userId },
+            select: { date: true },
+            orderBy: { date: 'desc' }
+        }),
+        
+        // 6. Languages breakdown
+        prisma.language.findMany({
+            where: { userId },
+            orderBy: { bytes: 'desc' }
+        })
+    ])
 
     let currentStreak = 0
     let longestStreak = 0
@@ -100,11 +101,9 @@ export async function calculateUserStats(userId: string) {
         }
     }
 
-    // Calculate languages breakdown
-    const languages = await prisma.language.findMany({
-        where: { userId },
-        orderBy: { bytes: 'desc' }
-    })
+    const totalStars = repos.reduce((acc: number, repo: { stars: number | null }) => acc + (repo.stars || 0), 0)
+    const totalForks = repos.reduce((acc: number, repo: { forks: number | null }) => acc + (repo.forks || 0), 0)
+    const mostActiveRepo = reposWithCommits[0]?.name || "None"
 
     const topLanguage = languages.length > 0 ? languages[0].name : "N/A"
 
