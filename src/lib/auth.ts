@@ -31,4 +31,19 @@ export const authOptions: NextAuthOptions = {
             return session
         },
     },
+    events: {
+        async linkAccount({ user, account, profile }) {
+            if (account.provider === "github" && profile && "login" in profile) {
+                await prisma.user.update({
+                    where: { id: user.id },
+                    data: {
+                        // @ts-ignore - profile.login and profile.id exist on GitHub profile
+                        githubUsername: profile.login,
+                        // @ts-ignore
+                        githubId: profile.id,
+                    },
+                })
+            }
+        },
+    },
 }
