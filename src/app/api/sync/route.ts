@@ -25,8 +25,19 @@ export async function POST() {
 
         // Fetch the user's actual GitHub username dynamically
         const userRes = await fetch("https://api.github.com/user", {
-            headers: { Authorization: `Bearer ${account.access_token}` }
+            headers: { 
+                "Authorization": `Bearer ${account.access_token}`,
+                "User-Agent": "DevLens-App",
+                "Accept": "application/vnd.github.v3+json"
+            }
         })
+        
+        if (!userRes.ok) {
+            console.error("[SYNC] Failed to fetch GitHub user:", await userRes.text())
+            // Clear invalid token string from DB here or prompt user to re-link could be implemented
+            return new NextResponse("GitHub token invalid or expired. Please re-authenticate.", { status: 401 })
+        }
+        
         const userData = await userRes.json()
         const githubUsername = userData.login
 
@@ -48,6 +59,11 @@ export async function POST() {
 
         // 1. Sync Repositories
         const repos = await githubService.fetchRepositories()
+        
+        // Reset languages to avoid duplicate counting across syncs
+        await prisma.language.deleteMany({
+            where: { userId: session.user.id }
+        })
 
         for (const repo of repos) {
             try {
@@ -81,29 +97,22 @@ export async function POST() {
                     try {
                         const languages = await githubService.fetchLanguages(repo.full_name)
                         for (const [name, bytes] of Object.entries(languages)) {
-                            const existingLanguage = await prisma.language.findUnique({
+                            await prisma.language.upsert({
                                 where: {
                                     userId_name: {
                                         userId: session.user.id,
                                         name: name
                                     }
+                                },
+                                update: {
+                                    bytes: { increment: bytes as number }
+                                },
+                                create: {
+                                    name,
+                                    bytes: bytes as number,
+                                    userId: session.user.id,
                                 }
                             })
-
-                            if (existingLanguage) {
-                                await prisma.language.update({
-                                    where: { id: existingLanguage.id },
-                                    data: { bytes: existingLanguage.bytes + (bytes as number) }
-                                })
-                            } else {
-                                await prisma.language.create({
-                                    data: {
-                                        name,
-                                        bytes: bytes as number,
-                                        userId: session.user.id,
-                                    }
-                                })
-                            }
                         }
                     } catch (e) {
                         console.error(`Failed to fetch languages for ${repo.full_name}`)
