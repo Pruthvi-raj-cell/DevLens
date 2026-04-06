@@ -133,7 +133,8 @@ export function SearchInput() {
                         </div>
                     ) : !isSearching ? (
                         <div className="px-4 py-6 text-center text-sm text-muted-foreground">
-                            No public developers found for &quot;{query}&quot;
+                            No DevLens users found for &quot;{query}&quot;. 
+                            <br/><span className="text-xs opacity-70 mt-1 block">They may not have joined DevLens yet!</span>
                         </div>
                     ) : null}
                 </div>

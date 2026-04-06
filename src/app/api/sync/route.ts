@@ -34,6 +34,16 @@ export async function POST() {
             return new NextResponse("Could not fetch GitHub username", { status: 400 })
         }
 
+        // Immediately update basic GitHub info so the user is searchable
+        // We do this before the slow syncing to prevent missing usernames on timeout
+        await prisma.user.update({
+            where: { id: session.user.id },
+            data: { 
+                githubUsername: githubUsername,
+                githubId: userData.id
+            }
+        })
+
         const githubService = new GitHubService(account.access_token, githubUsername)
 
         // 1. Sync Repositories
@@ -132,13 +142,11 @@ export async function POST() {
             }
         }
 
-        // 3. Update sync timestamp and GitHub info on user
+        // 3. Update sync timestamp on user
         await prisma.user.update({
             where: { id: session.user.id },
             data: { 
-                lastSyncAt: new Date(),
-                githubUsername: githubUsername,
-                githubId: userData.id
+                lastSyncAt: new Date()
             }
         })
 
