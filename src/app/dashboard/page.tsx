@@ -15,20 +15,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 export default async function DashboardPage() {
     const user = await requireAuth()
 
-    // Get full user data
-    const dbUser = await prisma.user.findUnique({
-        where: { id: user.id }
-    })
-
-    // Calculate stats
-    const stats = await calculateUserStats(user.id)
-
-    // Get recent repos
-    const recentRepos = await prisma.repository.findMany({
-        where: { userId: user.id },
-        orderBy: { updatedAt: 'desc' },
-        take: 6,
-    })
+    // Parallelize all main dashboard queries to improve TTFB
+    const [dbUser, stats, recentRepos] = await Promise.all([
+        prisma.user.findUnique({
+            where: { id: user.id }
+        }),
+        calculateUserStats(user.id),
+        prisma.repository.findMany({
+            where: { userId: user.id },
+            orderBy: { updatedAt: 'desc' },
+            take: 6,
+        })
+    ])
 
     return (
         <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
