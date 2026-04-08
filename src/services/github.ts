@@ -47,12 +47,12 @@ export class GitHubService {
         // and rely on webhook events more heavily.
         const query = `author:${this.username} author-date:>${since.toISOString().split('T')[0]}`
 
-        // To avoid hitting search limits during development, we'll fetch recent repos and their commits
         const repos = reposToUse || await this.fetchRepositories()
-        const allCommits = []
+        const allCommits: any[] = []
 
-        // Only fetch commits from top 10 most recently updated repos to save API calls
-        for (const repo of repos.slice(0, 10)) {
+        // Fetch commits concurrently from top 10 most recently updated repos to save API calls
+        const topRepos = repos.slice(0, 10)
+        await Promise.all(topRepos.map(async (repo: any) => {
             try {
                 const url = `/repos/${repo.full_name}/commits?author=${this.username}&since=${since.toISOString()}&per_page=100`
                 const commits = await this.fetchGit(url)
@@ -64,7 +64,7 @@ export class GitHubService {
             } catch (e) {
                 console.error(`Failed to fetch commits for ${repo.full_name}`)
             }
-        }
+        }))
 
         return allCommits
     }
