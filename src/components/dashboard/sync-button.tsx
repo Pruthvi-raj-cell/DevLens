@@ -1,25 +1,71 @@
 "use client"
 
 import { useState } from "react"
-import { RefreshCw } from "lucide-react"
+import { RefreshCw, CheckCircle2, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 export function SyncButton({ lastSyncAt }: { lastSyncAt: Date | null }) {
     const [isSyncing, setIsSyncing] = useState(false)
+    const [syncStatus, setSyncStatus] = useState<'idle' | 'success' | 'error'>('idle')
 
     const handleSync = async () => {
         try {
             setIsSyncing(true)
+            setSyncStatus('idle')
             const res = await fetch("/api/sync", { method: "POST" })
-            if (!res.ok) throw new Error("Sync failed")
+            
+            if (!res.ok) {
+                const errorText = await res.text()
+                console.error("Sync failed:", errorText)
+                setSyncStatus('error')
+                return
+            }
 
-            // Refresh page to show new data
-            window.location.reload()
+            setSyncStatus('success')
+            
+            // Brief delay to show success state, then reload
+            setTimeout(() => {
+                window.location.reload()
+            }, 1500)
         } catch (error) {
-            console.error(error)
+            console.error("Sync error:", error)
+            setSyncStatus('error')
         } finally {
             setIsSyncing(false)
         }
+    }
+
+    const getButtonContent = () => {
+        if (isSyncing) {
+            return (
+                <>
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    Syncing Data...
+                </>
+            )
+        }
+        if (syncStatus === 'success') {
+            return (
+                <>
+                    <CheckCircle2 className="h-4 w-4 mr-2 text-green-500" />
+                    Sync Complete!
+                </>
+            )
+        }
+        if (syncStatus === 'error') {
+            return (
+                <>
+                    <AlertCircle className="h-4 w-4 mr-2 text-red-500" />
+                    Sync Failed - Retry?
+                </>
+            )
+        }
+        return (
+            <>
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Sync GitHub Data
+            </>
+        )
     }
 
     return (
@@ -32,11 +78,10 @@ export function SyncButton({ lastSyncAt }: { lastSyncAt: Date | null }) {
             <Button
                 onClick={handleSync}
                 disabled={isSyncing}
-                variant="outline"
+                variant={syncStatus === 'error' ? 'destructive' : 'outline'}
                 size="sm"
             >
-                <RefreshCw className={`h-4 w-4 mr-2 ${isSyncing ? "animate-spin" : ""}`} />
-                {isSyncing ? "Syncing Data..." : "Sync GitHub Data"}
+                {getButtonContent()}
             </Button>
         </div>
     )

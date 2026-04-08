@@ -25,7 +25,7 @@ export function ActivityHeatmap({ data, username }: HeatmapProps) {
 
         const fetchData = async () => {
             try {
-                const url = username ? '/api/heatmap' : '/api/heatmap'
+                const url = '/api/heatmap'
                 const method = username ? 'POST' : 'GET'
                 const body = username ? JSON.stringify({ username }) : undefined
 
@@ -54,10 +54,10 @@ export function ActivityHeatmap({ data, username }: HeatmapProps) {
         oneYearAgo.setDate(oneYearAgo.getDate() - 1)
     }
 
-    const days = []
+    const days: { date: string, count: number }[] = []
     const dataMap = new Map(heatmapData.map(d => [d.date, d.count]))
 
-    let currentDate = new Date(oneYearAgo)
+    const currentDate = new Date(oneYearAgo)
     while (currentDate <= today) {
         const dateStr = currentDate.toISOString().split('T')[0]
         days.push({
@@ -67,7 +67,6 @@ export function ActivityHeatmap({ data, username }: HeatmapProps) {
         currentDate.setDate(currentDate.getDate() + 1)
     }
 
-    // Calculate colors based on contribution count
     // Calculate colors matching authentic GitHub dark mode with added glow for high activity
     const getColor = (count: number) => {
         if (count === 0) return isDark ? 'bg-[#161b22] border-[0.5px] border-white/5' : 'bg-gray-100'
@@ -78,17 +77,29 @@ export function ActivityHeatmap({ data, username }: HeatmapProps) {
     }
 
     // Group into weeks
-    const weeks = []
+    const weeks: { date: string, count: number }[][] = []
     for (let i = 0; i < days.length; i += 7) {
         weeks.push(days.slice(i, i + 7))
     }
 
+    // Calculate month labels positioned at the correct week columns
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-    const startMonth = oneYearAgo.getMonth()
-    const displayedMonths = []
-    for (let i = 0; i < 12; i++) {
-        displayedMonths.push(monthNames[(startMonth + i) % 12])
-    }
+    const monthLabels: { name: string, weekIndex: number }[] = []
+    let lastMonth = -1
+    weeks.forEach((week, weekIndex) => {
+        // Use the first day of the week to determine the month
+        const firstDay = week[0]
+        if (firstDay) {
+            const month = new Date(firstDay.date).getMonth()
+            if (month !== lastMonth) {
+                monthLabels.push({ name: monthNames[month], weekIndex })
+                lastMonth = month
+            }
+        }
+    })
+
+    // Cell size: 12px + 4px gap = 16px per week column (w-3 = 12px, gap-1 = 4px)
+    const cellSize = 16 // px per week column (12px cell + 4px gap)
 
     if (loading) {
         return (
@@ -122,12 +133,21 @@ export function ActivityHeatmap({ data, username }: HeatmapProps) {
             </CardHeader>
             <CardContent>
                 <div className="flex flex-col pb-4 overflow-x-auto custom-scrollbar">
-                    <div className="flex text-xs text-muted-foreground mb-2 ml-8 gap-x-[3.2rem]">
-                        {displayedMonths.map((m, i) => <span key={i}>{m}</span>)}
+                    {/* Month labels positioned based on actual week data */}
+                    <div className="relative h-5 mb-1" style={{ marginLeft: '32px' }}>
+                        {monthLabels.map((label, i) => (
+                            <span
+                                key={i}
+                                className="absolute text-xs text-muted-foreground"
+                                style={{ left: `${label.weekIndex * cellSize}px` }}
+                            >
+                                {label.name}
+                            </span>
+                        ))}
                     </div>
 
                     <div className="flex gap-1 relative">
-                        <div className="flex flex-col text-[10px] text-muted-foreground justify-between py-1 pr-2 absolute -left-8 h-full">
+                        <div className="flex flex-col text-[10px] text-muted-foreground justify-between py-1 pr-2 w-8 shrink-0">
                             <span>Mon</span>
                             <span>Wed</span>
                             <span>Fri</span>
@@ -136,7 +156,7 @@ export function ActivityHeatmap({ data, username }: HeatmapProps) {
                         <TooltipProvider delayDuration={0}>
                             {weeks.map((week, weekIndex) => (
                                 <div key={weekIndex} className="flex flex-col gap-1 z-10">
-                                    {week.map((day, dayIndex) => (
+                                    {week.map((day) => (
                                         <Tooltip key={day.date}>
                                             <TooltipTrigger asChild>
                                                 <div
@@ -144,7 +164,7 @@ export function ActivityHeatmap({ data, username }: HeatmapProps) {
                                                 />
                                             </TooltipTrigger>
                                             <TooltipContent side="top">
-                                                <p>{day.count} contributions on {new Date(day.date).toDateString()}</p>
+                                                <p>{day.count} contributions on {new Date(day.date + 'T00:00:00').toDateString()}</p>
                                             </TooltipContent>
                                         </Tooltip>
                                     ))}
