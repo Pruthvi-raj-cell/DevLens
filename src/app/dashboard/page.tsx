@@ -51,7 +51,7 @@ export default async function DashboardPage() {
                     </div>
 
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                        <ActivityHeatmap />
+                        <ActivityHeatmap data={stats.heatmapData} />
                     </div>
 
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

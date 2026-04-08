@@ -83,7 +83,12 @@ export function ActivityHeatmap({ data, username }: HeatmapProps) {
         weeks.push(days.slice(i, i + 7))
     }
 
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    const startMonth = oneYearAgo.getMonth()
+    const displayedMonths = []
+    for (let i = 0; i < 12; i++) {
+        displayedMonths.push(monthNames[(startMonth + i) % 12])
+    }
 
     if (loading) {
         return (
@@ -118,7 +123,7 @@ export function ActivityHeatmap({ data, username }: HeatmapProps) {
             <CardContent>
                 <div className="flex flex-col pb-4 overflow-x-auto custom-scrollbar">
                     <div className="flex text-xs text-muted-foreground mb-2 ml-8 gap-x-[3.2rem]">
-                        {months.map((m, i) => <span key={i}>{m}</span>)}
+                        {displayedMonths.map((m, i) => <span key={i}>{m}</span>)}
                     </div>
 
                     <div className="flex gap-1 relative">

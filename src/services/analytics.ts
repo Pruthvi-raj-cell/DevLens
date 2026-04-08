@@ -134,6 +134,23 @@ export async function calculateUserStats(userId: string) {
         commits: count
     }))
 
+    // Generate heatmap data directly (last 365 days)
+    const heatmapDataMap = new Map<string, number>()
+    const oneYearAgo = new Date()
+    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1)
+
+    userCommits.forEach((c: { date: Date }) => {
+        if (c.date >= oneYearAgo) {
+            const dateStr = c.date.toISOString().split('T')[0]
+            heatmapDataMap.set(dateStr, (heatmapDataMap.get(dateStr) || 0) + 1)
+        }
+    })
+
+    const heatmapData = Array.from(heatmapDataMap.entries()).map(([date, count]) => ({
+        date,
+        count
+    }))
+
     return {
         totalCommits,
         reposCount,
@@ -144,6 +161,7 @@ export async function calculateUserStats(userId: string) {
         chartData,
         languages,
         totalStars,
-        totalForks
+        totalForks,
+        heatmapData
     }
 }

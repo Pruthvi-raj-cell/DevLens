@@ -122,7 +122,7 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
 
                 {/* Heatmap Section */}
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-                    <ActivityHeatmap username={user.githubUsername!} />
+                    <ActivityHeatmap data={stats.heatmapData} username={user.githubUsername!} />
                 </div>
 
                 {/* Repos Section */}
