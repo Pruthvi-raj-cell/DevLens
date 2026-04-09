@@ -36,9 +36,12 @@ export async function POST() {
         })
         
         if (!userRes.ok) {
-            console.error("[SYNC] Failed to fetch GitHub user:", await userRes.text())
-            // Clear invalid token string from DB here or prompt user to re-link could be implemented
-            return new NextResponse("GitHub token invalid or expired. Please re-authenticate.", { status: 401 })
+            const errBody = await userRes.text()
+            console.error(`[SYNC] Failed to fetch GitHub user (HTTP ${userRes.status}):`, errBody)
+            return NextResponse.json(
+                { error: "GitHub token invalid or expired. Please sign out and sign back in." },
+                { status: 401 }
+            )
         }
         
         const userData = await userRes.json()
