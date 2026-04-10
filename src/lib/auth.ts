@@ -10,14 +10,34 @@ export const authOptions: NextAuthOptions = {
         GithubProvider({
             clientId: process.env.GITHUB_ID as string,
             clientSecret: process.env.GITHUB_SECRET as string,
-            // GitHub is OAuth 2.0, not OIDC — disable ID token and use state-only checks
-            // to prevent openid-client from demanding an issuer configuration
-            idToken: false,
-            checks: ["state"],
             // Request repo scope so we can read repositories, commits, and languages
             authorization: {
                 params: {
                     scope: "read:user user:email repo",
+                },
+            },
+            // Custom token exchange to bypass openid-client's issuer assertions
+            token: {
+                url: "https://github.com/login/oauth/access_token",
+                async request({ client, params, checks, provider }) {
+                    const response = await fetch(
+                        "https://github.com/login/oauth/access_token",
+                        {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                Accept: "application/json",
+                            },
+                            body: JSON.stringify({
+                                client_id: provider.clientId,
+                                client_secret: provider.clientSecret,
+                                code: params.code,
+                                redirect_uri: provider.callbackUrl,
+                            }),
+                        }
+                    )
+                    const tokens = await response.json()
+                    return { tokens }
                 },
             },
             profile(profile) {
