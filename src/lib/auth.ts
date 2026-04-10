@@ -10,6 +10,10 @@ export const authOptions: NextAuthOptions = {
         GithubProvider({
             clientId: process.env.GITHUB_ID as string,
             clientSecret: process.env.GITHUB_SECRET as string,
+            // GitHub is OAuth 2.0, not OIDC — disable ID token and use state-only checks
+            // to prevent openid-client from demanding an issuer configuration
+            idToken: false,
+            checks: ["state"],
             // Request repo scope so we can read repositories, commits, and languages
             authorization: {
                 params: {
