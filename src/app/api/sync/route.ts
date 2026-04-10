@@ -150,7 +150,7 @@ export async function POST() {
         }
 
         // 7. Build repo ID cache from DB in one query (not per-commit)
-        const repoGithubIds = [...new Set(allCommits.map((c) => c.repoGithubId))]
+        const repoGithubIds = Array.from(new Set(allCommits.map((c) => c.repoGithubId)))
         const dbRepos = await prisma.repository.findMany({
             where: { githubId: { in: repoGithubIds } },
             select: { id: true, githubId: true },
