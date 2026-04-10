@@ -1,13 +1,15 @@
-import { NextRequest, NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
+export const dynamic = "force-dynamic";
+
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+
 export async function GET(req: NextRequest) {
     try {
-
-        const searchParams = req.nextUrl.searchParams
-        const query = searchParams.get("q")
+        const searchParams = req.nextUrl.searchParams;
+        const query = searchParams.get("q");
 
         if (!query || query.trim() === "") {
-            return NextResponse.json({ users: [] })
+            return NextResponse.json({ users: [] });
         }
 
         const users = await prisma.user.findMany({
@@ -35,11 +37,14 @@ export async function GET(req: NextRequest) {
                 image: true,
             },
             take: 5,
-        })
+        });
 
-        return NextResponse.json({ users })
+        return NextResponse.json({ users });
     } catch (error) {
-        console.error("Search API Error:", error)
-        return NextResponse.json({ error: "Failed to search users" }, { status: 500 })
+        console.error("Search API Error:", error);
+        return NextResponse.json(
+            { error: "Failed to search users" },
+            { status: 500 }
+        );
     }
 }
