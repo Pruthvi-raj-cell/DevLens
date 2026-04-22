@@ -59,9 +59,9 @@ export async function POST() {
             data: { githubUsername, githubId: userData.id },
         })
 
-        // 3. Fetch repos (single API call, limit to 30 most recent)
+        // 3. Fetch repos (single API call, fetch up to 100)
         const repos: any[] = await ghFetch(
-            `/user/repos?sort=updated&per_page=30&affiliation=owner,collaborator`,
+            `/user/repos?sort=updated&per_page=100&affiliation=owner,collaborator`,
             token
         )
 
@@ -95,19 +95,19 @@ export async function POST() {
             )
         )
 
-        // 5. Build language stats from repo primary languages (NO extra API calls)
-        // Instead of fetching /repos/{name}/languages for each repo (N API calls),
-        // we use the primary language field already returned in the repos list.
-        // This gives a good approximation without the massive API overhead.
+        // 5. Build precise language stats from ALL repos
         const languageMap = new Map<string, number>()
-        for (const repo of repos) {
-            if (repo.language) {
-                languageMap.set(
-                    repo.language,
-                    (languageMap.get(repo.language) || 0) + (repo.size || 1) * 1024
-                )
+        const langResults = await Promise.allSettled(
+            repos.map((repo: any) => ghFetch(repo.languages_url.replace("https://api.github.com", ""), token))
+        )
+        
+        langResults.forEach((res) => {
+            if (res.status === "fulfilled" && res.value) {
+                Object.entries(res.value).forEach(([langName, bytes]: [string, any]) => {
+                    languageMap.set(langName, (languageMap.get(langName) || 0) + bytes)
+                })
             }
-        }
+        })
 
         // Replace all languages in a single transaction
         await prisma.$transaction([
@@ -119,16 +119,16 @@ export async function POST() {
             ),
         ])
 
-        // 6. Fetch commits from top 5 repos only (5 API calls max, not 10)
+        // 6. Fetch commits from all repos
         const since = new Date()
         since.setFullYear(since.getFullYear() - 1)
         const sinceISO = since.toISOString()
 
-        const topRepos = repos.slice(0, 5)
+        const topRepos = repos
         const commitResults = await Promise.allSettled(
             topRepos.map(async (repo: any) => {
                 const commits = await ghFetch(
-                    `/repos/${repo.full_name}/commits?author=${githubUsername}&since=${sinceISO}&per_page=50`,
+                    `/repos/${repo.full_name}/commits?author=${githubUsername}&since=${sinceISO}&per_page=100`,
                     token
                 )
                 return commits.map((c: any) => ({
@@ -161,10 +161,9 @@ export async function POST() {
         const validCommits = allCommits.filter((c) => repoIdMap.has(c.repoGithubId))
 
         if (validCommits.length > 0) {
-            // Process in a single transaction, limit to 100 most recent commits
+            // Process in a single transaction
             const sortedCommits = validCommits
                 .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-                .slice(0, 100)
 
             await prisma.$transaction(
                 sortedCommits.map((commit) =>
