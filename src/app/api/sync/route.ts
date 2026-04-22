@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { revalidatePath } from "next/cache"
 
 // Global Timeout limit
 export const maxDuration = 10;
@@ -281,6 +282,7 @@ export async function POST() {
         try {
             repos = await fetchAndStoreRepos(userId, token)
             structuredResponse.repos = "done";
+            structuredResponse.insertedReposCount = repos.length;
         } catch (error) {
             console.error("[SYNC_ERROR] Repos Fetch Failed:", error);
             structuredResponse.repos = "failed";
@@ -294,8 +296,9 @@ export async function POST() {
 
         // 3. Deep Sync Languages (Batched & Timeout-Aware)
         try {
-            await syncPreciseLanguages(userId, topReposForSync, token, startTime)
+            const langCount = await syncPreciseLanguages(userId, topReposForSync, token, startTime)
             structuredResponse.languages = "done";
+            structuredResponse.insertedLanguagesCount = langCount;
         } catch (error) {
             console.error("[SYNC_ERROR] Languages Sync Partial Failure:", error);
             structuredResponse.languages = "partial/failed";
@@ -303,8 +306,9 @@ export async function POST() {
 
         // 4. Deep Sync Commits (Batched & Memory/Streaming DB inserts)
         try {
-            await syncCommits(userId, githubUsername, topReposForSync, token, startTime)
+            const commitsCount = await syncCommits(userId, githubUsername, topReposForSync, token, startTime)
             structuredResponse.commits = "done";
+            structuredResponse.insertedCommitsCount = commitsCount;
         } catch (error) {
             console.error("[SYNC_ERROR] Commits Sync Partial Failure:", error);
             structuredResponse.commits = "partial/failed";
@@ -316,11 +320,17 @@ export async function POST() {
             data: { lastSyncAt: new Date() },
         })
 
+        // Force Purge Next.js Server Routing Cache
+        revalidatePath('/dashboard')
+
         const endTime = Date.now()
-        console.log(`[SYNC:SUCCESS] Processed completely in ${endTime - startTime}ms`);
+        console.log(`[SYNC:SUCCESS] Processed completely and cache purged in ${endTime - startTime}ms`);
 
         structuredResponse.success = true;
         structuredResponse.executionTimeMs = endTime - startTime;
+        structuredResponse.userIdUsed = userId;
+
+        console.log(`[SYNC:FINAL] insertedReposCount: ${structuredResponse.insertedReposCount || 0}, insertedCommitsCount: ${structuredResponse.insertedCommitsCount || 0}, insertedLanguagesCount: ${structuredResponse.insertedLanguagesCount || 0}, userIdUsed: ${structuredResponse.userIdUsed}`);
 
         return NextResponse.json(structuredResponse)
     } catch (error: any) {
