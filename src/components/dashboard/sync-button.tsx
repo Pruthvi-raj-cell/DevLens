@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
+import { useRouter } from "next/navigation"
 import { signIn } from "next-auth/react"
 import { RefreshCw, CheckCircle2, AlertCircle, LogIn } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -10,7 +11,22 @@ export function SyncButton({ lastSyncAt }: { lastSyncAt: Date | null }) {
     const [syncStatus, setSyncStatus] = useState<'idle' | 'success' | 'error' | 'auth_error'>('idle')
     const [errorMessage, setErrorMessage] = useState("")
 
-    const handleSync = async () => {
+    const router = useRouter()
+    const hasAutoSynced = useRef(false)
+
+    useEffect(() => {
+        if (!hasAutoSynced.current) {
+            hasAutoSynced.current = true
+            // Auto sync if no sync has happened, or if the last sync was more than 5 minutes ago
+            // to avoid infinite loops and GitHub API rate bans
+            const fiveMinsAgo = new Date(Date.now() - 5 * 60 * 1000)
+            if (!lastSyncAt || new Date(lastSyncAt) < fiveMinsAgo) {
+                handleSync(false)
+            }
+        }
+    }, [lastSyncAt])
+
+    const handleSync = async (isManual = true) => {
         try {
             setIsSyncing(true)
             setSyncStatus('idle')
@@ -34,9 +50,12 @@ export function SyncButton({ lastSyncAt }: { lastSyncAt: Date | null }) {
 
             setSyncStatus('success')
             
-            // Brief delay to show success state, then reload
+            // Brief delay to show success state, then refresh the server component data
             setTimeout(() => {
-                window.location.reload()
+                router.refresh()
+                if (isManual) {
+                    setSyncStatus('idle')
+                }
             }, 1500)
         } catch (error) {
             console.error("Sync error:", error)
@@ -106,7 +125,7 @@ export function SyncButton({ lastSyncAt }: { lastSyncAt: Date | null }) {
                 </span>
             )}
             <Button
-                onClick={syncStatus === 'auth_error' ? handleReAuth : handleSync}
+                onClick={() => syncStatus === 'auth_error' ? handleReAuth() : handleSync(true)}
                 disabled={isSyncing}
                 variant={syncStatus === 'error' ? 'destructive' : syncStatus === 'auth_error' ? 'default' : 'outline'}
                 size="sm"
