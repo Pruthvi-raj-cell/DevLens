@@ -12,6 +12,9 @@ import { ProfileVisibilityToggle } from "@/components/dashboard/profile-visibili
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
+export const dynamic = "force-dynamic"
+export const revalidate = 0
+
 export default async function DashboardPage() {
     const user = await requireAuth()
 
@@ -27,6 +30,11 @@ export default async function DashboardPage() {
             take: 6,
         })
     ])
+
+    console.log(`[DASHBOARD_RENDER] userId used for query: ${user.id}`);
+    console.log(`[DASHBOARD_RENDER] Fetched Repos count: ${recentRepos.length}`);
+    console.log(`[DASHBOARD_RENDER] Fetched Commits count: ${stats.totalCommits}`);
+    console.log(`[DASHBOARD_RENDER] Languages fetched: ${stats.languages.length}`);
 
     return (
         <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
