@@ -14,8 +14,10 @@ export function SyncButton({ lastSyncAt }: { lastSyncAt: Date | null }) {
 
     const router = useRouter()
     const hasAutoSynced = useRef(false)
+    const [mounted, setMounted] = useState(false)
 
     useEffect(() => {
+        setMounted(true)
         if (!hasAutoSynced.current) {
             hasAutoSynced.current = true
             // Auto sync if no sync has happened, or if the last sync was more than 5 minutes ago
@@ -138,7 +140,7 @@ export function SyncButton({ lastSyncAt }: { lastSyncAt: Date | null }) {
 
     return (
         <div className="flex items-center gap-4">
-            {lastSyncAt && (
+            {mounted && lastSyncAt && (
                 <span className="text-sm text-muted-foreground hidden md:inline-block">
                     Last synced: {new Date(lastSyncAt).toLocaleString()}
                 </span>
