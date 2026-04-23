@@ -204,71 +204,74 @@ export const githubSyncJob = inngest.createFunction(
       });
 
       // Step 4: Commits
-      await step.run("Fetch Commits", async () => {
-        console.log(`[SYNC] Fetch commits for ${repos.length} repos`);
-        const since = new Date();
-        since.setFullYear(since.getFullYear() - 1);
-        const sinceISO = since.toISOString();
+      const since = new Date();
+      since.setFullYear(since.getFullYear() - 1);
+      const sinceISO = since.toISOString();
 
-        const dbRepos = await prisma.repository.findMany({
-            where: { githubId: { in: repos.map(r => r.id) } },
-            select: { id: true, githubId: true }
-        });
-        const repoIdsMap = new Map<number, string>();
-        dbRepos.forEach(r => repoIdsMap.set(r.githubId, r.id));
+      const dbRepos = await step.run("Fetch DB Repos", async () => {
+          return prisma.repository.findMany({
+              where: { githubId: { in: repos.map(r => r.id) } },
+              select: { id: true, githubId: true }
+          });
+      });
+      const repoIdsMap = new Map<number, string>();
+      dbRepos.forEach(r => repoIdsMap.set(r.githubId, r.id));
 
-        const results = await mapConcurrent(repos, MAX_CONCURRENCY, repo => {
-            return ghFetchWithTimeout(
-                `/repos/${repo.full_name}/commits?author=${profile.login}&since=${sinceISO}&per_page=100`,
-                token
-            ).then(data => (Array.isArray(data) ? data : []).map((c: any) => ({
-                sha: c.sha,
-                message: (c.commit?.message || "").substring(0, 500),
-                date: new Date(c.commit?.author?.date || new Date().toISOString()),
-                url: c.html_url || "",
-                repoGithubId: repo.id,
-            })));
-        });
+      let currentProgress = 70;
+      const progressIncrement = 30 / Math.max(1, repos.length);
 
-        const allCommits = [];
-        for (const res of results) {
-            if (res.status === 'fulfilled' && res.value) {
-                allCommits.push(...res.value);
-            } else if (res.status === 'rejected') {
-                console.warn(`[SYNC] Commits fetch failed:`, res.reason);
-            }
-        }
+      for (let i = 0; i < repos.length; i++) {
+          const repo = repos[i];
+          const repoDbId = repoIdsMap.get(repo.id);
+          
+          if (!repoDbId) continue;
 
-        const validCommits = allCommits.filter(c => repoIdsMap.has(c.repoGithubId));
-        console.log(`[SYNC] Found ${validCommits.length} commits total`);
+          await step.run(`Fetch Commits: ${repo.name}`, async () => {
+              console.log(`[SYNC] Fetch commits for repo: ${repo.name}`);
+              
+              const commitsData = await ghFetchWithTimeout(
+                  `/repos/${repo.full_name}/commits?author=${profile.login}&since=${sinceISO}&per_page=100`,
+                  token
+              );
+              
+              const validCommits = (Array.isArray(commitsData) ? commitsData : []).map((c: any) => ({
+                  sha: c.sha,
+                  message: (c.commit?.message || "").substring(0, 500),
+                  date: new Date(c.commit?.author?.date || new Date().toISOString()),
+                  url: c.html_url || "",
+                  userId,
+                  repositoryId: repoDbId,
+              }));
 
-        const commitChunks = chunkArray(validCommits, BATCH_SIZE_DB);
-        for(let j = 0; j < commitChunks.length; j++) {
-            const chunk = commitChunks[j];
-            console.log(`[SYNC] Inserted ${chunk.length} commits (${j+1}/${commitChunks.length})`);
-            await prisma.$transaction(
-                chunk.map((commit: any) => 
-                    prisma.commit.upsert({
-                        where: { sha: commit.sha },
-                        update: {}, // Does NOT duplicate, just ignores existing
-                        create: {
-                            sha: commit.sha,
-                            message: commit.message,
-                            date: commit.date,
-                            url: commit.url,
-                            userId,
-                            repositoryId: repoIdsMap.get(commit.repoGithubId)!,
-                        }
-                    })
-                )
-            );
-        }
+              if (validCommits.length > 0) {
+                  const commitChunks = chunkArray(validCommits, BATCH_SIZE_DB);
+                  for (const chunk of commitChunks) {
+                      await prisma.$transaction(
+                          chunk.map((commit: any) => 
+                              prisma.commit.upsert({
+                                  where: { sha: commit.sha },
+                                  update: {}, 
+                                  create: commit
+                              })
+                          )
+                      );
+                  }
+              }
 
-        await prisma.user.update({
-          where: { id: userId },
-          data: { syncProgress: 100, syncStatus: "completed", lastSyncAt: new Date() },
-        });
-        console.log("[SYNC] Sync completed safely and securely!");
+              currentProgress += progressIncrement;
+              await prisma.user.update({
+                  where: { id: userId },
+                  data: { syncProgress: Math.min(99, Math.floor(currentProgress)) }
+              });
+          });
+      }
+
+      await step.run("Complete Sync", async () => {
+          await prisma.user.update({
+              where: { id: userId },
+              data: { syncProgress: 100, syncStatus: "completed", lastSyncAt: new Date() },
+          });
+          console.log("[SYNC] Sync completed safely and securely!");
       });
 
       return { success: true };
