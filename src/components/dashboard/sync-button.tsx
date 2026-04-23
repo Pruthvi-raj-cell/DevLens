@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 export function SyncButton({ lastSyncAt }: { lastSyncAt: Date | null }) {
     const [isSyncing, setIsSyncing] = useState(false)
     const [syncStatus, setSyncStatus] = useState<'idle' | 'success' | 'error' | 'auth_error'>('idle')
+    const [syncProgress, setSyncProgress] = useState(0)
     const [errorMessage, setErrorMessage] = useState("")
 
     const router = useRouter()
@@ -48,22 +49,45 @@ export function SyncButton({ lastSyncAt }: { lastSyncAt: Date | null }) {
                 return
             }
 
-            setSyncStatus('success')
-            
-            // Brief delay to show success state, then refresh the server component data
-            setTimeout(() => {
-                router.refresh()
-                if (isManual) {
-                    setSyncStatus('idle')
+            setSyncProgress(0)
+
+            // Poll for status
+            const pollInterval = setInterval(async () => {
+                try {
+                    const statusRes = await fetch("/api/sync/status")
+                    if (statusRes.ok) {
+                        const data = await statusRes.json()
+                        setSyncProgress(data.syncProgress || 0)
+                        
+                        if (data.syncStatus === 'completed') {
+                            clearInterval(pollInterval)
+                            setSyncStatus('success')
+                            setIsSyncing(false)
+                            router.refresh()
+                            
+                            if (isManual) {
+                                setTimeout(() => setSyncStatus('idle'), 3000)
+                            }
+                        } else if (data.syncStatus === 'failed') {
+                            clearInterval(pollInterval)
+                            setSyncStatus('error')
+                            setErrorMessage(data.syncError || "Sync failed")
+                            setIsSyncing(false)
+                        }
+                    }
+                } catch (err) {
+                    console.error("Polling error:", err)
                 }
-            }, 1500)
+            }, 1000)
+
         } catch (error) {
             console.error("Sync error:", error)
             setSyncStatus('error')
             setErrorMessage("Network error")
-        } finally {
             setIsSyncing(false)
         }
+        // Notice we do NOT set setIsSyncing(false) in finally block anymore
+        // because we wait for polling to finish it!
     }
 
     const handleReAuth = () => {
@@ -76,7 +100,7 @@ export function SyncButton({ lastSyncAt }: { lastSyncAt: Date | null }) {
             return (
                 <>
                     <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                    Syncing Data...
+                    {syncProgress > 0 ? `Syncing (${syncProgress}%)...` : 'Starting Sync...'}
                 </>
             )
         }
