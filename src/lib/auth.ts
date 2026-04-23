@@ -37,6 +37,7 @@ export const authOptions: NextAuthOptions = {
                         }
                     )
                     const tokens = await response.json()
+                    console.log("[GITHUB TOKEN RESP]", tokens)
                     return { tokens }
                 },
             },

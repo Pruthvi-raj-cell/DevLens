@@ -54,6 +54,10 @@ model User {
   languages     Language[]
   
   lastSyncAt    DateTime?
+  syncStatus    String    @default("pending")
+  syncProgress  Int       @default(0)
+  syncError     String?
+
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 }
